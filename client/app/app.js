@@ -1,114 +1,116 @@
 'use strict';
 
-var w = 1280,
-    h = 800,
-    node,
-    link,
-    root;
+var width = 960,
+    height = 500;
+
+var color = d3.scale.category20();
 
 var force = d3.layout.force()
-    .on("tick", tick)
-    .charge(function(d) { return d._children ? -d.size / 100 : -30; })
-    .linkDistance(function(d) { return d.target._children ? 80 : 30; })
-    .size([w, h - 160]);
+    .charge(-300)
+    .linkDistance(100)
+    .size([width, height]);
 
-var vis = d3.select("body").append("svg:svg")
-    .attr("width", w)
-    .attr("height", h);
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
 
-d3.json("http://mbostock.github.io/d3/talk/20111116/flare.json", function(json) {
-  root = json;
-  root.fixed = true;
-  root.x = w / 2;
-  root.y = h / 2 - 80;
-  update();
-});
+var nodeMap = {},
+  nodeNetFlow = {};
 
-function update() {
-  var nodes = flatten(root),
-      links = d3.layout.tree().links(nodes);
+function parseNodes(rawNodes) {
+  const parsedNodes = [];
+  
+  rawNodes.forEach((s,i) => {
+    if (s.name === 'exit' || s.name === 'launch')
+      return;
+    
+    nodeMap[s.state] = parsedNodes.length;
+    nodeNetFlow[s.state] = 0;
+    parsedNodes.push({
+      name: s.state,
+      group: 1,
+      count: s.count,
+    });
+  });
+  
+  return parsedNodes;
+}
 
-  // Restart the force layout.
+function parseLinks(rawLinks) {
+  return rawLinks.map(s => {
+    nodeNetFlow[s.stateFrom] -= s.count;
+    nodeNetFlow[s.stateTo] += s.count;
+    
+    return {
+      source: nodeMap[s.stateFrom],
+      target: nodeMap[s.stateTo],
+      value: s.count,
+      path: s.path,
+    };
+  });
+}
+
+d3.json("/api/track/graph?appVersion=1.0", function(err, rawData) {
+  if (err) throw err;
+
+  const nodes = parseNodes(rawData[0]);
+  const links = parseLinks(rawData[1]);
+  
+  console.log(nodes);
+  console.log(links);
+  
   force
-      .nodes(nodes)
-      .links(links)
-      .start();
+    .nodes(nodes)
+    .links(links)
+    .start();
 
-  // Update the links…
-  link = vis.selectAll("line.link")
-      .data(links, function(d) { return d.target.id; });
-
-  // Enter any new links.
-  link.enter().insert("svg:line", ".node")
+  const d3Links = svg.selectAll(".link")
+    .data(links)
+    .enter().append("line")
       .attr("class", "link")
-      .attr("x1", function(d) { return d.source.x; })
-      .attr("y1", function(d) { return d.source.y; })
-      .attr("x2", function(d) { return d.target.x; })
-      .attr("y2", function(d) { return d.target.y; });
+      .style("stroke-width", function(d) { return 1.5*Math.sqrt(d.value); })
+      .style('stroke', d => {
+        if (d.target.name === 'exit')
+          return '#633';
+        
+        if (d.source.name === 'launch')
+          return '#353';
+        
+        return '#666';
+      });
 
-  // Exit any old links.
-  link.exit().remove();
-
-  // Update the nodes…
-  node = vis.selectAll("circle.node")
-      .data(nodes, function(d) { return d.id; })
-      .style("fill", color);
-
-  node.transition()
-      .attr("r", function(d) { return d.children ? 4.5 : Math.sqrt(d.size) / 10; });
-
-  // Enter any new nodes.
-  node.enter().append("svg:circle")
+  const d3Nodes = svg.selectAll(".node")
+    .data(nodes)
+    .enter()
+      .append('g')
       .attr("class", "node")
-      .attr("cx", function(d) { return d.x; })
-      .attr("cy", function(d) { return d.y; })
-      .attr("r", function(d) { return d.children ? 4.5 : Math.sqrt(d.size) / 10; })
-      .style("fill", color)
-      .on("click", click)
-      .call(force.drag);
+      .call(force.drag)
+  
+  d3Nodes.append("circle")
+    .attr("r", d => 3*Math.sqrt(d.count))
+    .style("fill", function(d) { return color(d.group); })
+  
+  d3Nodes.append("text")
+    .attr('dy', '.3em')
+    .text(function(d) { return d.name; });
 
-  // Exit any old nodes.
-  node.exit().remove();
-}
+//  node.append("title")
+//    .text(function(d) { return d.name; });
 
-function tick() {
-  link.attr("x1", function(d) { return d.source.x; })
-      .attr("y1", function(d) { return d.source.y; })
-      .attr("x2", function(d) { return d.target.x; })
-      .attr("y2", function(d) { return d.target.y; });
+  force.on("tick", function() {
+    d3Links.attr("x1", d => (d.source.name==='launch') ? d.target.x : d.source.x)
+        .attr("y1", d => (d.source.name==='launch') ? 0 : d.source.y)
+        .attr("x2", d => (d.target.name==='exit') ? d.source.x : d.target.x)
+        .attr("y2", d => (d.target.name==='exit') ? height : d.target.y);
 
-  node.attr("cx", function(d) { return d.x; })
-      .attr("cy", function(d) { return d.y; });
-}
-
-// Color leaf nodes orange, and packages white or blue.
-function color(d) {
-  return d._children ? "#3182bd" : d.children ? "#c6dbef" : "#fd8d3c";
-}
-
-// Toggle children on click.
-function click(d) {
-  if (d.children) {
-    d._children = d.children;
-    d.children = null;
-  } else {
-    d.children = d._children;
-    d._children = null;
-  }
-  update();
-}
-
-// Returns a list of all nodes under the root.
-function flatten(root) {
-  var nodes = [], i = 0;
-
-  function recurse(node) {
-    if (node.children) node.size = node.children.reduce(function(p, v) { return p + recurse(v); }, 0);
-    if (!node.id) node.id = ++i;
-    nodes.push(node);
-    return node.size;
-  }
-
-  root.size = recurse(root);
-  return nodes;
-}
+    d3Nodes.attr('transform', d => {
+      if (d.name === 'launch')
+        return `translate(${width/2},${30})`
+      
+      if (d.name === 'exit')
+        return `translate(${width/2},${height-30})`
+      
+      return `translate(${d.x},${d.y})`;
+    });
+  });
+});

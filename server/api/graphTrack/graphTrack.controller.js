@@ -74,6 +74,43 @@ export function exit(req, res) {
   ]).then(respondWithResult(res), handleError(res));
 }
 
+export function graph(req, res) {
+  const data = req.query;
+  if (!data.appVersion)
+    return res.status(404).json({ok: 0, msg: 'app version required'}).end();
+
+  const version = parseAppVersion(data.appVersion);
+  var stateMap = {};
+  
+  Promise.all([
+    GT_States.find({version: version}, {
+      _id: false,
+      state: true,
+      count: true,
+    }).exec(),
+    
+    GT_Edges.find({version: version}, {
+      _id: false,
+      stateFrom: true,
+      stateTo: true,
+      path: true,
+      count: true,
+    }).exec(),
+  ]).then(respondWithResult(res));
+  
+//  results => res.json({
+//    nodes: results[0],
+//    links: results[1].map(s => {
+//      return {
+//        source: stateMap[s.stateFrom],
+//        target: stateMap[s.stateTo],
+//        value: s.count,
+//        path: s.path,
+//      }
+//    }),
+//  }));
+}
+
 
 function incState(version, state) {
   const id = [version, state].join('_');
