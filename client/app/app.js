@@ -1,7 +1,7 @@
 'use strict';
 
-var width = 960,
-    height = 500;
+var width = 1200,
+    height = 640;
 
 var color = d3.scale.category20();
 
@@ -78,7 +78,7 @@ d3.json("/api/track/graph?appVersion=1.0", function(err, rawData) {
   
   d3Nodes.append('line')
     .style('stroke-width', function(d) { return 1.5*Math.sqrt(d.launch); })
-    .style('stroke', 'rgba(0,255,0,0.2)')
+    .style('stroke', 'rgba(0,255,0,0.15)')
     .attr('x1', 0)
     .attr('y1', -height)
     .attr('x2', 0)
@@ -86,7 +86,7 @@ d3.json("/api/track/graph?appVersion=1.0", function(err, rawData) {
   
   d3Nodes.append("line")
     .style('stroke-width', function(d) { return 1.5*Math.sqrt(d.exit); })
-    .style('stroke', 'rgba(255,0,0,0.2)')
+    .style('stroke', 'rgba(255,0,0,0.15)')
     .attr('x1', 0)
     .attr('y1', 0)
     .attr('x2', 0)

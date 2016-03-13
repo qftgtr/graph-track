@@ -18,16 +18,20 @@ svg {
   padding: 0.2em 0;
 }
 
-
-.node>circle {
-  stroke: black;
-  stroke-width: 1.5px;
-}
-
-.node>text {
-  fill: white;
-  text-anchor: middle;
-  font: 8px sans-serif;
+.node {
+  cursor: pointer;
+  
+  circle {
+    stroke: black;
+    stroke-width: 1.5px;
+    cursor: pointer;
+  }
+  
+  text {
+    fill: white;
+    text-anchor: middle;
+    font: 8px sans-serif;
+  }
 }
 
 .link {
