@@ -3,6 +3,7 @@ public
 .tmp
 .sass-cache
 .idea
+client2
 client/bower_components
 /server/config/local.env.js
 npm-debug.log
