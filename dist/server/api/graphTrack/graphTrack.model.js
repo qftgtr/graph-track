@@ -17,15 +17,21 @@ var GraphTrackModel = {
     _id: String,
     version: String,
     state: String,
-    count: Number
+    count: Number,
+    launch: Number,
+    exit: Number,
+    type: String
   })),
   GT_Edges: _mongoose2['default'].model('GT_Edges', new _mongoose2['default'].Schema({
     _id: String,
-    stateFrom: String,
-    stateTo: String,
-    path: String,
     version: String,
+    state_from: String,
+    state_to: String,
     count: Number
+  })),
+  GT_Sessions: _mongoose2['default'].model('GT_Sessions', new _mongoose2['default'].Schema({
+    version: String,
+    state: String
   }))
 };
 

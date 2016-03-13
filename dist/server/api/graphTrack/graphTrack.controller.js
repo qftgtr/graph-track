@@ -15,8 +15,9 @@ Object.defineProperty(exports, '__esModule', {
   value: true
 });
 exports.launch = launch;
-exports.transition = transition;
+exports.go = go;
 exports.exit = exit;
+exports.graph = graph;
 
 var _lodash = require('lodash');
 
@@ -28,6 +29,7 @@ var _graphTrackModel2 = _interopRequireDefault(_graphTrackModel);
 
 var GT_States = _graphTrackModel2['default'].GT_States;
 var GT_Edges = _graphTrackModel2['default'].GT_Edges;
+var GT_Sessions = _graphTrackModel2['default'].GT_Sessions;
 
 function respondWithResult(res, statusCode) {
   statusCode = statusCode || 200;
@@ -46,68 +48,140 @@ function handleError(res, statusCode) {
 }
 
 function launch(req, res) {
-  var data = req.query;
-  if (!data.appVersion) return res.status(404).json({ ok: 0, msg: 'app version required' }).end();
+  var _req$query = req.query;
+  var appVersion = _req$query.appVersion;
+  var launchFrom = _req$query.launchFrom;
 
-  var version = parseAppVersion(data.appVersion),
-      state = data.state || 'emptystate',
-      path = data.launchFrom || 'default';
+  if (!appVersion) return res.status(404).json({ ok: 0, msg: 'app version required' }).end();
 
-  _Promise.all([incState(version, 'launch'), incState(version, state), incEdge(version, 'launch', state, path)]).then(respondWithResult(res), handleError(res));
+  var version = parseAppVersion(appVersion);
+
+  endTrack().then(function () {
+    return GT_Sessions.create({
+      version: version,
+      state: ''
+    });
+  }).then(function (result) {
+    if (launchFrom) {
+      return _Promise.all([incState(version, 'launch'), launchState(version, launchFrom, 'launch'), setCurrentState(result._id, launchFrom)]);
+    } else {
+      return incState(version, 'launch');
+    }
+  }).then(respondWithResult(res))['catch'](handleError(res));
 }
 
-function transition(req, res) {
-  var data = req.query;
-  if (!data.appVersion) return res.status(404).json({ ok: 0, msg: 'app version required' }).end();
+function go(req, res) {
+  var _req$query2 = req.query;
+  var state = _req$query2.state;
+  var path = _req$query2.path;
 
-  var version = parseAppVersion(data.appVersion),
-      stateFrom = data.stateFrom || 'emptystate',
-      stateTo = data.stateTo || 'emptystate',
-      path = data.path || 'default';
+  if (!state) return res.status(404).json({ ok: 0, msg: 'state required' }).end();
 
-  _Promise.all([incState(version, stateTo, res), incEdge(version, stateFrom, stateTo, path, res)]).then(respondWithResult(res), handleError(res));
+  GT_Sessions.findOne({}).then(function (result) {
+    if (!result) {
+      return { ok: 0, msg: 'no session' };
+    }
+
+    if (result.state === state) {
+      return { ok: 0, msg: 'repeated state' };
+    }
+
+    if (result.state) {
+      return _Promise.all([incEdge(result.version, result.state, state), incState(result.version, state), setCurrentState(result._id, state)]);
+    } else {
+      return _Promise.all([launchState(result.version, state), setCurrentState(result._id, state)]);
+    }
+  }).then(respondWithResult(res))['catch'](handleError(res));
 }
 
 function exit(req, res) {
-  var data = req.query;
-  if (!data.appVersion) return res.status(404).json({ ok: 0, msg: 'app version required' }).end();
-
-  var version = parseAppVersion(data.appVersion),
-      state = data.state || 'emptystate';
-
-  _Promise.all([incState(version, 'exit'), incEdge(version, state, 'exit', 'default')]).then(respondWithResult(res), handleError(res));
+  endTrack().then(respondWithResult(res))['catch'](handleError(res));
 }
 
-function incState(version, state) {
-  var id = [version, state].join('_');
+function graph(req, res) {
+  var appVersion = req.query.appVersion;
 
-  return GT_States.update({ _id: id }, { $inc: { count: 1 } }).exec().then(function (result) {
+  if (!appVersion) return res.status(404).json({ ok: 0, msg: 'app version required' }).end();
+
+  var version = parseAppVersion(appVersion);
+
+  _Promise.all([GT_States.find({ version: version }, {
+    _id: false,
+    state: true,
+    count: true,
+    launch: true,
+    exit: true
+  }).exec(), GT_Edges.find({ version: version }, {
+    _id: false,
+    state_from: true,
+    state_to: true,
+    count: true
+  }).exec()]).then(respondWithResult(res))['catch'](handleError(res));
+}
+
+function launchState(version, state, type) {
+  var _id = [version, state].join('_');
+
+  return GT_States.update({ _id: _id }, { $inc: { count: 1, launch: 1 } }).exec().then(function (result) {
     if (result.nModified) return result;
 
     return GT_States.create({
-      _id: id,
+      _id: _id,
       version: version,
       state: state,
+      count: 1,
+      launch: 1,
+      exit: 0
+    });
+  });
+}
+
+function incState(version, state) {
+  var _id = [version, state].join('_');
+
+  return GT_States.update({ _id: _id }, { $inc: { count: 1 } }).exec().then(function (result) {
+    if (result.nModified) return result;
+
+    return GT_States.create({
+      _id: _id,
+      version: version,
+      state: state,
+      count: 1,
+      launch: 0,
+      exit: 0
+    });
+  });
+}
+
+function incEdge(version, stateFrom, stateTo) {
+  var _id = [version, stateFrom, stateTo].join('_');
+
+  return GT_Edges.update({ _id: _id }, { $inc: { count: 1 } }).exec().then(function (result) {
+    if (result.nModified) return result;
+
+    return GT_Edges.create({
+      _id: _id,
+      version: version,
+      state_from: stateFrom,
+      state_to: stateTo,
       count: 1
     });
   });
 }
 
-function incEdge(version, stateFrom, stateTo, path) {
-  var id = [version, stateFrom, stateTo, path].join('_');
-
-  return GT_Edges.update({ _id: id }, { $inc: { count: 1 } }).exec().then(function (result) {
-    if (result.nModified) return result;
-
-    return GT_Edges.create({
-      _id: id,
-      stateFrom: stateFrom,
-      stateTo: stateTo,
-      path: path,
-      version: version,
-      count: 1
-    });
+function endTrack() {
+  return GT_Sessions.findOne({}).then(function (result) {
+    return result ? _Promise.all([exitState(result.version, result.state), incState(result.version, 'exit'), GT_Sessions.remove({ _id: result._id })]) : null;
   });
+}
+
+function exitState(version, state) {
+  var _id = [version, state].join('_');
+  return GT_States.update({ _id: _id }, { $inc: { exit: 1 } }).exec();
+}
+
+function setCurrentState(_id, state) {
+  return GT_Sessions.update({ _id: _id }, { $set: { state: state } });
 }
 
 function parseAppVersion(v) {
