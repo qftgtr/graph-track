@@ -29,8 +29,8 @@ const paths = {
             `${clientPath}/**/!(*.spec|*.mock).js`,
             `!${clientPath}/bower_components/**/*`
         ],
-        styles: [`${clientPath}/{app,components}/**/*.css`],
-        mainStyle: `${clientPath}/app/app.css`,
+        styles: [`${clientPath}/{app,components}/**/*.scss`],
+        mainStyle: `${clientPath}/app/app.scss`,
         views: `${clientPath}/{app,components}/**/*.html`,
         mainView: `${clientPath}/index.html`,
         test: [`${clientPath}/{app,components}/**/*.{spec,mock}.js`],
@@ -125,6 +125,7 @@ let lintServerTestScripts = lazypipe()
 
 let styles = lazypipe()
     .pipe(plugins.sourcemaps.init)
+    .pipe(plugins.sass)
     .pipe(plugins.autoprefixer, {browsers: ['last 1 version']})
     .pipe(plugins.sourcemaps.write, '.');
 
@@ -197,7 +198,7 @@ gulp.task('env:prod', () => {
  ********************/
 
 gulp.task('inject', cb => {
-    runSequence(['inject:js', 'inject:css'], cb);
+    runSequence(['inject:js', 'inject:css', 'inject:scss'], cb);
 });
 
 gulp.task('inject:js', () => {
@@ -224,6 +225,26 @@ gulp.task('inject:css', () => {
                 transform: (filepath) => '<link rel="stylesheet" href="' + filepath.replace(`/${clientPath}/`, '').replace('/.tmp/', '') + '">'
             }))
         .pipe(gulp.dest(clientPath));
+});
+
+gulp.task('inject:scss', () => {
+    return gulp.src(paths.client.mainStyle)
+        .pipe(plugins.inject(
+            gulp.src(_.union(paths.client.styles, ['!' + paths.client.mainStyle]), {read: false})
+                .pipe(plugins.sort()),
+            {
+                starttag: '// injector',
+                endtag: '// endinjector',
+                transform: (filepath) => {
+                    let newPath = filepath
+                        .replace(`/${clientPath}/app/`, '')
+                        .replace(`/${clientPath}/components/`, '../components/')
+                        .replace(/_(.*).scss/, (match, p1, offset, string) => p1)
+                        .replace('.scss', '');
+                    return `@import '${newPath}';`;
+                }
+            }))
+        .pipe(gulp.dest(`${clientPath}/app`));
 });
 
 gulp.task('styles', () => {
@@ -304,7 +325,7 @@ gulp.task('watch', () => {
 
     plugins.livereload.listen();
 
-    plugins.watch(paths.client.styles, () => {  //['inject:css']
+    plugins.watch(paths.client.styles, () => {  //['inject:scss']
         gulp.src(paths.client.mainStyle)
             .pipe(plugins.plumber())
             .pipe(styles())
