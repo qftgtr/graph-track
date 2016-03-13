@@ -6,7 +6,7 @@ var width = 960,
 var color = d3.scale.category20();
 
 var force = d3.layout.force()
-    .charge(-300)
+    .charge(-1000)
     .linkDistance(100)
     .size([width, height]);
 
@@ -14,22 +14,24 @@ var svg = d3.select("body").append("svg")
     .attr("width", width)
     .attr("height", height);
 
-var nodeMap = {},
-  nodeNetFlow = {};
+const nodeMap = {};
+const nodeNetFlow = {};
 
 function parseNodes(rawNodes) {
   const parsedNodes = [];
   
   rawNodes.forEach((s,i) => {
-    if (s.name === 'exit' || s.name === 'launch')
+    if (s.state === 'exit' || s.state === 'launch')
       return;
     
     nodeMap[s.state] = parsedNodes.length;
     nodeNetFlow[s.state] = 0;
     parsedNodes.push({
       name: s.state,
-      group: 1,
       count: s.count,
+      launch: s.launch,
+      exit: s.exit,
+      group: 1,
     });
   });
   
@@ -38,14 +40,13 @@ function parseNodes(rawNodes) {
 
 function parseLinks(rawLinks) {
   return rawLinks.map(s => {
-    nodeNetFlow[s.stateFrom] -= s.count;
-    nodeNetFlow[s.stateTo] += s.count;
+    nodeNetFlow[s.state_from] -= s.count;
+    nodeNetFlow[s.state_to] += s.count;
     
     return {
-      source: nodeMap[s.stateFrom],
-      target: nodeMap[s.stateTo],
+      source: nodeMap[s.state_from],
+      target: nodeMap[s.state_to],
       value: s.count,
-      path: s.path,
     };
   });
 }
@@ -55,9 +56,6 @@ d3.json("/api/track/graph?appVersion=1.0", function(err, rawData) {
 
   const nodes = parseNodes(rawData[0]);
   const links = parseLinks(rawData[1]);
-  
-  console.log(nodes);
-  console.log(links);
   
   force
     .nodes(nodes)
@@ -69,47 +67,46 @@ d3.json("/api/track/graph?appVersion=1.0", function(err, rawData) {
     .enter().append("line")
       .attr("class", "link")
       .style("stroke-width", function(d) { return 1.5*Math.sqrt(d.value); })
-      .style('stroke', d => {
-        if (d.target.name === 'exit')
-          return '#633';
-        
-        if (d.source.name === 'launch')
-          return '#353';
-        
-        return '#666';
-      });
-
-  const d3Nodes = svg.selectAll(".node")
+      .style('stroke', '#666');
+  
+  const d3Nodes = svg.selectAll('.node')
     .data(nodes)
     .enter()
       .append('g')
       .attr("class", "node")
       .call(force.drag)
   
+  d3Nodes.append('line')
+    .style('stroke-width', function(d) { return 1.5*Math.sqrt(d.launch); })
+    .style('stroke', 'rgba(0,255,0,0.2)')
+    .attr('x1', 0)
+    .attr('y1', -height)
+    .attr('x2', 0)
+    .attr('y2', 0);
+  
+  d3Nodes.append("line")
+    .style('stroke-width', function(d) { return 1.5*Math.sqrt(d.exit); })
+    .style('stroke', 'rgba(255,0,0,0.2)')
+    .attr('x1', 0)
+    .attr('y1', 0)
+    .attr('x2', 0)
+    .attr('y2', height);
+  
   d3Nodes.append("circle")
-    .attr("r", d => 3*Math.sqrt(d.count))
+    .attr("r", d => Math.sqrt(d.count))
     .style("fill", function(d) { return color(d.group); })
   
   d3Nodes.append("text")
     .attr('dy', '.3em')
     .text(function(d) { return d.name; });
-
-//  node.append("title")
-//    .text(function(d) { return d.name; });
-
+  
   force.on("tick", function() {
-    d3Links.attr("x1", d => (d.source.name==='launch') ? d.target.x : d.source.x)
-        .attr("y1", d => (d.source.name==='launch') ? 0 : d.source.y)
-        .attr("x2", d => (d.target.name==='exit') ? d.source.x : d.target.x)
-        .attr("y2", d => (d.target.name==='exit') ? height : d.target.y);
-
-    d3Nodes.attr('transform', d => {
-      if (d.name === 'launch')
-        return `translate(${width/2},${30})`
-      
-      if (d.name === 'exit')
-        return `translate(${width/2},${height-30})`
-      
+    d3Links.attr("x1", d => d.source.x)
+      .attr("y1", d => d.source.y)
+      .attr("x2", d => d.target.x)
+      .attr("y2", d => d.target.y);
+    
+    d3Nodes.attr('transform', d => {      
       return `translate(${d.x},${d.y})`;
     });
   });

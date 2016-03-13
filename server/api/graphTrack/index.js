@@ -13,8 +13,8 @@ var router = express.Router();
 //router.delete('/:id', controller.destroy);
 
 router.get('/launch', controller.launch);
-router.get('/transition', controller.transition);
-router.post('/exit', controller.exit);
+router.get('/go', controller.go);
+router.get('/exit', controller.exit);
 router.get('/graph', controller.graph);
 
 module.exports = router;

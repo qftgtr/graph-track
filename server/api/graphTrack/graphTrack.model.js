@@ -9,14 +9,20 @@ var GraphTrackModel = {
     version: String,
     state: String,
     count: Number,
+    launch: Number,
+    exit: Number,
+    type: String,
   })),
   GT_Edges: mongoose.model('GT_Edges', new mongoose.Schema({
     _id: String,
-    stateFrom: String,
-    stateTo: String,
-    path: String,
     version: String,
+    state_from: String,
+    state_to: String,
     count: Number,
+  })),
+  GT_Sessions: mongoose.model('GT_Sessions', new mongoose.Schema({
+    version: String,
+    state: String,
   })),
 }
 
