@@ -20,6 +20,7 @@ var _path2 = _interopRequireDefault(_path);
 
 exports['default'] = function (app) {
   // Insert routes below
+  app.use('/api/track', require('./api/graphTrack'));
   app.use('/api/things', require('./api/thing'));
   app.use('/api/users', require('./api/user'));
 
