@@ -51,7 +51,7 @@ function parseLinks(rawLinks) {
   });
 }
 
-d3.json("/api/track/graph?appVersion=1.0", function(err, rawData) {
+d3.json("/api/track/graph?appVersion=0.1", function(err, rawData) {
   if (err) throw err;
 
   const nodes = parseNodes(rawData[0]);

@@ -23,7 +23,7 @@ GT_States.remove({})
       {"state":"t2","count":601,"launch":1,"exit":200,"version":"1.0.0",_id:"1.0.0_t2"},
       {"state":"t3","count":401,"launch":0,"exit":200,"version":"1.0.0",_id:"1.0.0_t3"},
       {"state":"t4","count":201,"launch":0,"exit":200,"version":"1.0.0",_id:"1.0.0_t4"},
-      {"state":"t5","count":1,"launch":0,"exit":1,"version":"1.0.0",_id:"1.0.0_t5"},
+      {"state":"t5","count":1,"launch":0,"exit":1,"version":"1.0.0",_id:"1.0.0_t5"}
     );
   });
   
@@ -40,9 +40,8 @@ GT_Edges.remove({})
       {"_id":"1.0.0_t2_t3","state_from":"t2","state_to":"t3","count":401,"version":"1.0.0"},
       {"_id":"1.0.0_t3_t4","state_from":"t3","state_to":"t4","count":201,"version":"1.0.0"},
       {"_id":"1.0.0_t4_t5","state_from":"t4","state_to":"t5","count":1,"version":"1.0.0"},
-      
       {"_id":"1.0.0_s1_t1","state_from":"s1","state_to":"t1","count":200,"version":"1.0.0"},
-      {"_id":"1.0.0_t1_s1","state_from":"t1","state_to":"s1","count":100,"version":"1.0.0"},
+      {"_id":"1.0.0_t1_s1","state_from":"t1","state_to":"s1","count":100,"version":"1.0.0"}
     );
   });
 
