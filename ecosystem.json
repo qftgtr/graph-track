@@ -23,7 +23,7 @@
       "post-deploy": "pwd;cd dist;npm install --production;pm2 startOrRestart ../ecosystem.json --env production",
       env: {
         NODE_ENV: "production",
-        MONGO_URL: "172.17.0.7:27017"
+        MONGO_URL: "172.17.0.7:27017/GraphTrack"
       }
     }
   }

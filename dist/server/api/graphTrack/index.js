@@ -12,9 +12,14 @@ var router = express.Router();
 //router.patch('/:id', controller.update);
 //router.delete('/:id', controller.destroy);
 
-router.get('/launch', controller.launch);
-router.get('/go', controller.go);
-router.get('/exit', controller.exit);
+router.all('/*', function (req, res, next) {
+  res.header('Access-Control-Allow-Origin', '*');
+  next();
+});
+
+router.post('/launch', controller.launch);
+router.post('/go', controller.go);
+router.post('/exit', controller.exit);
 router.get('/graph', controller.graph);
 
 module.exports = router;

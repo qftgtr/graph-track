@@ -1,7 +1,7 @@
 /**
  * Using Rails-like standard naming convention for endpoints.
  * POST    /api/launch             ->  launch
- * POST    /api/transition         ->  transition
+ * POST    /api/go                 ->  go
  * POST    /api/exit               ->  exit
  */
 
@@ -48,6 +48,7 @@ function handleError(res, statusCode) {
 }
 
 function launch(req, res) {
+  console.log(req.query);
   var _req$query = req.query;
   var appVersion = _req$query.appVersion;
   var launchFrom = _req$query.launchFrom;
@@ -71,6 +72,7 @@ function launch(req, res) {
 }
 
 function go(req, res) {
+  console.log(req.query);
   var _req$query2 = req.query;
   var state = _req$query2.state;
   var path = _req$query2.path;

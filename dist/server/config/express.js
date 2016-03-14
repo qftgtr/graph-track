@@ -103,18 +103,18 @@ exports['default'] = function (app) {
    * https://github.com/krakenjs/lusca
    */
   if ('test' !== env) {
-    app.use((0, _lusca2['default'])({
-      csrf: {
-        angular: true
-      },
-      xframe: 'SAMEORIGIN',
-      hsts: {
-        maxAge: 31536000, //1 year, in seconds
-        includeSubDomains: true,
-        preload: true
-      },
-      xssProtection: true
-    }));
+    //    app.use(lusca({
+    //      csrf: {
+    //        angular: true
+    //      },
+    //      xframe: 'SAMEORIGIN',
+    //      hsts: {
+    //        maxAge: 31536000, //1 year, in seconds
+    //        includeSubDomains: true,
+    //        preload: true
+    //      },
+    //      xssProtection: true
+    //    }));
   }
 
   app.set('appPath', _path2['default'].join(_environment2['default'].root, 'client'));
