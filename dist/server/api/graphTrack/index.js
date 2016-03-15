@@ -1,25 +1,20 @@
 'use strict';
 
 var express = require('express');
+var cors = require('cors');
 var controller = require('./graphTrack.controller');
 
 var router = express.Router();
 
-//router.get('/', controller.create);
-//router.get('/:id', controller.show);
-//router.post('/', controller.create);
-//router.put('/:id', controller.update);
-//router.patch('/:id', controller.update);
-//router.delete('/:id', controller.destroy);
+//var corsConfig = cors({
+//  origin: '*',
+//  methods: 'POST',
+//  credentials: true,
+//  allowedHeaders: 'Content-Type, Accept, X-Requested-With',
+//});
 
-router.all('/*', function (req, res, next) {
-  res.header('Access-Control-Allow-Origin', '*');
-  next();
-});
-
-router.post('/launch', controller.launch);
-router.post('/go', controller.go);
-router.post('/exit', controller.exit);
+router.post('/go', cors({ origin: '*' }), controller.go);
+//router.post('/exit', corsConfig, controller.exit);
 router.get('/graph', controller.graph);
 
 module.exports = router;

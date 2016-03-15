@@ -28,10 +28,6 @@ var GraphTrackModel = {
     state_from: String,
     state_to: String,
     count: Number
-  })),
-  GT_Sessions: _mongoose2['default'].model('GT_Sessions', new _mongoose2['default'].Schema({
-    version: String,
-    state: String
   }))
 };
 

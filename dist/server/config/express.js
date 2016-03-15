@@ -88,7 +88,8 @@ exports['default'] = function (app) {
   // Persist sessions with mongoStore / sequelizeStore
   // We need to enable sessions for passport-twitter because it's an
   // oauth 1.0 strategy, and Lusca depends on sessions
-  app.use((0, _expressSession2['default'])({
+  app.use(/\/((?!api\/track).)*/, (0, _expressSession2['default'])({
+    name: 'trackid',
     secret: _environment2['default'].secrets.session,
     saveUninitialized: true,
     resave: false,
