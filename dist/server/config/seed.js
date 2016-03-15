@@ -21,7 +21,6 @@ var _apiGraphTrackGraphTrackModel2 = _interopRequireDefault(_apiGraphTrackGraphT
 
 var GT_States = _apiGraphTrackGraphTrackModel2['default'].GT_States;
 var GT_Edges = _apiGraphTrackGraphTrackModel2['default'].GT_Edges;
-var GT_Sessions = _apiGraphTrackGraphTrackModel2['default'].GT_Sessions;
 
 //GT_States.remove({})
 //  .then(() => {
