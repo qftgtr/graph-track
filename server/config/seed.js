@@ -7,7 +7,7 @@
 import Thing from '../api/thing/thing.model';
 import User from '../api/user/user.model';
 import GraphTrack from '../api/graphTrack/graphTrack.model';
-const {GT_States, GT_Edges, GT_Sessions} = GraphTrack;
+const {GT_States, GT_Edges} = GraphTrack;
 
 
 //GT_States.remove({})
