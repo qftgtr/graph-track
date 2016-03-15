@@ -21,11 +21,11 @@ function parseNodes(rawNodes) {
   const parsedNodes = [];
   
   rawNodes.forEach((s,i) => {
-    if (s.state === 'exit' || s.state === 'launch')
+    if (s.state === 'launch')
       return;
     
     nodeMap[s.state] = parsedNodes.length;
-    nodeNetFlow[s.state] = 0;
+    nodeNetFlow[s.state] = s.launch;
     parsedNodes.push({
       name: s.state,
       count: s.count,
@@ -85,7 +85,7 @@ d3.json("/api/track/graph?appVersion=0.1", function(err, rawData) {
     .attr('y2', 0);
   
   d3Nodes.append("line")
-    .style('stroke-width', function(d) { return 1.5*Math.sqrt(d.exit); })
+    .style('stroke-width', function(d) { return 1.5*Math.sqrt(nodeNetFlow[d.name]); })
     .style('stroke', 'rgba(255,0,0,0.15)')
     .attr('x1', 0)
     .attr('y1', 0)

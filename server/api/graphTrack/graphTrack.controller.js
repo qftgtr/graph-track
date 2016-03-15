@@ -1,6 +1,5 @@
 /**
  * Using Rails-like standard naming convention for endpoints.
- * POST    /api/launch             ->  launch
  * POST    /api/go                 ->  go
  * POST    /api/exit               ->  exit
  */
@@ -27,85 +26,30 @@ function handleError(res, statusCode) {
   };
 }
 
-export function launch(req, res) {
-  const {appVersion, launchFrom} = req.query;
+export function go(req, res) {
+  let {states, appVersion} = req.query;
   if (!appVersion)
     return res.status(404).json({ok: 0, msg: 'app version required'}).end();
   
-  const version = parseAppVersion(appVersion);
-  
-  let stateCache = req.session.stateCache;
-  if (!stateCache) {
-    stateCache = req.session.stateCache = {};
-  }
-  
-  console.log(req.session.id);
-  
-  var promise = stateCache.state ? endTrack(stateCache) : Promise.resolve();
-  
-  console.log('launch -> ' + launchFrom);
-  
-  promise
-    .then(() => {
-      stateCache.version = version;
-      stateCache.state = 'launch';
-      return;
-    })
-    .then(() => {
-      if (!launchFrom)
-        return incState(version, 'launch');
-    
-      stateCache.state = launchFrom;
-      return Promise.all([
-        incState(version, 'launch'),
-        launchState(version, launchFrom, 'launch'),
-      ]);
-    })
-    .then(respondWithResult(res))
-    .catch(handleError(res));
-}
-
-export function go(req, res) {
-  const stateCache = req.session.stateCache;
-  if (!stateCache.state)
-    return res.status(404).json({ok: 0, msg: 'no cache state'}).end();
-  
-  const {state, path} = req.query;
-  if (!state)
+  if (!states)
     return res.status(404).json({ok: 0, msg: 'state required'}).end();
   
-  if (stateCache.state === state)
-    return res.status(404).json({ok: 0, msg: 'repeated state'}).end();
+  states = states.split(',');
+  appVersion = parseAppVersion(appVersion);
   
+  var promises = [];
   
-//  console.log('version:' + stateCache.version);
-  console.log(stateCache.state + ' -> ' + state);
-  
-//  stateCache.state = state;
-  
-  let promise;
-  if (stateCache.state === 'launch') {
-    promise = launchState(stateCache.version, state);
-  } else {
-    promise = Promise.all([
-      incEdge(stateCache.version, stateCache.state, state),
-      incState(stateCache.version, state),
-    ]);
+  for (let i=0; i<states.length-1; i++) {
+    if (states[i]) {
+      promises.push(incEdge(appVersion, states[i], states[i+1]));
+      promises.push(incState(appVersion, states[i+1]));
+    } else {
+      promises.push(incState(appVersion, 'launch'));
+      promises.push(launchState(appVersion, states[i+1]));
+    }
   }
   
-  stateCache.state = state;
-  
-  promise
-    .then(respondWithResult(res))
-    .catch(handleError(res));
-}
-  
-export function exit(req, res) {
-  const stateCache = req.session.stateCache;
-  if (!stateCache.state)
-    return res.status(404).json({ok: 0, msg: 'no cache state'}).end();
-  
-  endTrack(stateCache)
+  Promise.all(promises)
     .then(respondWithResult(res))
     .catch(handleError(res));
 }
@@ -193,22 +137,22 @@ function incEdge(version, stateFrom, stateTo) {
     });
 }
 
-function endTrack(stateCache) {
-  console.log(stateCache.state + ' -> exit');
-  
-  return Promise.all([
-    exitState(stateCache.version, stateCache.state),
-    incState(stateCache.version, 'exit'),
-  ]).then(() => {
-    stateCache = {};
-    return;
-  });
-}
-
-function exitState(version, state) {
-  const _id = [version, state].join('_');
-  return GT_States.update({_id}, {$inc: {exit: 1}}).exec();
-}
+//function endTrack(stateCache) {
+//  console.log(stateCache.state + ' -> exit');
+//  
+//  return Promise.all([
+//    exitState(stateCache.version, stateCache.state),
+//    incState(stateCache.version, 'exit'),
+//  ]).then(() => {
+//    stateCache = {};
+//    return;
+//  });
+//}
+//
+//function exitState(version, state) {
+//  const _id = [version, state].join('_');
+//  return GT_States.update({_id}, {$inc: {exit: 1}}).exec();
+//}
 
 function parseAppVersion(v) {
   const version = v.split('.'),
