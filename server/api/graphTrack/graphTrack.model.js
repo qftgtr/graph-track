@@ -20,10 +20,6 @@ var GraphTrackModel = {
     state_to: String,
     count: Number,
   })),
-  GT_Sessions: mongoose.model('GT_Sessions', new mongoose.Schema({
-    version: String,
-    state: String,
-  })),
 }
 
 export default GraphTrackModel;

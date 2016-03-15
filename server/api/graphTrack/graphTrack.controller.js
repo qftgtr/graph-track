@@ -9,7 +9,7 @@
 
 import _ from 'lodash';
 import GraphTrack from './graphTrack.model';
-const {GT_States, GT_Edges, GT_Sessions} = GraphTrack;
+const {GT_States, GT_Edges} = GraphTrack;
 
 function respondWithResult(res, statusCode) {
   statusCode = statusCode || 200;
@@ -28,72 +28,84 @@ function handleError(res, statusCode) {
 }
 
 export function launch(req, res) {
-  console.log(req.query);
   const {appVersion, launchFrom} = req.query;
-  
   if (!appVersion)
     return res.status(404).json({ok: 0, msg: 'app version required'}).end();
   
   const version = parseAppVersion(appVersion);
   
-  endTrack()
+  let stateCache = req.session.stateCache;
+  if (!stateCache) {
+    stateCache = req.session.stateCache = {};
+  }
+  
+  console.log(req.session.id);
+  
+  var promise = stateCache.state ? endTrack(stateCache) : Promise.resolve();
+  
+  console.log('launch -> ' + launchFrom);
+  
+  promise
     .then(() => {
-      return GT_Sessions.create({
-        version,
-        state: '',
-      });
+      stateCache.version = version;
+      stateCache.state = 'launch';
+      return;
     })
-    .then(result => {
-      if (launchFrom) {
-        return Promise.all([
-          incState(version, 'launch'),
-          launchState(version, launchFrom, 'launch'),
-          setCurrentState(result._id, launchFrom),
-        ]);
-      } else {
+    .then(() => {
+      if (!launchFrom)
         return incState(version, 'launch');
-      }
+    
+      stateCache.state = launchFrom;
+      return Promise.all([
+        incState(version, 'launch'),
+        launchState(version, launchFrom, 'launch'),
+      ]);
     })
     .then(respondWithResult(res))
     .catch(handleError(res));
 }
 
 export function go(req, res) {
-  console.log(req.query);
-  const {state, path} = req.query;
+  const stateCache = req.session.stateCache;
+  if (!stateCache.state)
+    return res.status(404).json({ok: 0, msg: 'no cache state'}).end();
   
+  const {state, path} = req.query;
   if (!state)
     return res.status(404).json({ok: 0, msg: 'state required'}).end();
   
-  GT_Sessions.findOne({})
-    .then(result => {
-      if (!result) {
-        return {ok: 0, msg: 'no session'};
-      }
-    
-      if (result.state === state) {
-        return {ok: 0, msg: 'repeated state'};
-      }
-    
-      if (result.state) {
-        return Promise.all([
-          incEdge(result.version, result.state, state),
-          incState(result.version, state),
-          setCurrentState(result._id, state),
-        ]);
-      } else {
-        return Promise.all([
-          launchState(result.version, state),
-          setCurrentState(result._id, state),
-        ]);
-      }
-    })
+  if (stateCache.state === state)
+    return res.status(404).json({ok: 0, msg: 'repeated state'}).end();
+  
+  
+//  console.log('version:' + stateCache.version);
+  console.log(stateCache.state + ' -> ' + state);
+  
+//  stateCache.state = state;
+  
+  let promise;
+  if (stateCache.state === 'launch') {
+    promise = launchState(stateCache.version, state);
+  } else {
+    promise = Promise.all([
+      incEdge(stateCache.version, stateCache.state, state),
+      incState(stateCache.version, state),
+    ]);
+  }
+  
+  stateCache.state = state;
+  
+  promise
     .then(respondWithResult(res))
     .catch(handleError(res));
 }
   
 export function exit(req, res) {
-  endTrack()
+  const stateCache = req.session.stateCache;
+  if (!stateCache.state)
+    return res.status(404).json({ok: 0, msg: 'no cache state'}).end();
+  
+  endTrack(stateCache)
     .then(respondWithResult(res))
     .catch(handleError(res));
 }
@@ -181,24 +193,21 @@ function incEdge(version, stateFrom, stateTo) {
     });
 }
 
-function endTrack() {
-  return GT_Sessions.findOne({})
-    .then(result => {
-      return result ? Promise.all([
-        exitState(result.version, result.state),
-        incState(result.version, 'exit'),
-        GT_Sessions.remove({_id: result._id}),
-      ]) : null;
-    });
+function endTrack(stateCache) {
+  console.log(stateCache.state + ' -> exit');
+  
+  return Promise.all([
+    exitState(stateCache.version, stateCache.state),
+    incState(stateCache.version, 'exit'),
+  ]).then(() => {
+    stateCache = {};
+    return;
+  });
 }
 
 function exitState(version, state) {
   const _id = [version, state].join('_');
   return GT_States.update({_id}, {$inc: {exit: 1}}).exec();
-}
-
-function setCurrentState(_id, state) {
-  return GT_Sessions.update({_id}, { $set: {state} });
 }
 
 function parseAppVersion(v) {
