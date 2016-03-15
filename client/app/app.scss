@@ -32,17 +32,18 @@ svg {
     text-anchor: middle;
     font: 8px sans-serif;
   }
+}
+
+.gt-force-external {
+  stroke-opacity: .15;
+  cursor: pointer;
   
-  .gt-force-link-launch {
+  .gt-force-external-launch {
     stroke: #0f0;
-    stroke-opacity: .15;
-    cursor: pointer;
   }
   
-  .gt-force-link-exit {
+  .gt-force-external-exit {
     stroke: #f00;
-    stroke-opacity: .15;
-    cursor: pointer;
   }
 }
 
