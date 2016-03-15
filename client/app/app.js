@@ -110,14 +110,14 @@ var GraphTrackForceLayout = function(target, width, height) {
     str += '<p><b>流入</b></p>';
     if (d.launch)
       str += `<p><kbd style="background:aquamarine;">启动</kbd> ${d.launch}</p>`;
-    str += '<p>' + _nodeInOuts[d.state].ins.map(link => `<kbd>${link.state_from}</kbd> ${link.count}</p>`);
+    str += '<p>' + _nodeInOuts[d.state].ins.map(link => `<kbd>${link.state_from}</kbd> ${link.count}</p>`).join('');
     str += '</p></pre>';
     
     str += '<pre class="gt-force-tooltip-box gt-force-tooltip-box-out">';
     str += '<p><b>流出</b></p>';
     if (_nodeNetFlow[d.state])
       str += `<p><kbd style="background:coral;color:white;">退出</kbd> ${_nodeNetFlow[d.state]}</p>`;
-    str += '<p>' + _nodeInOuts[d.state].outs.map(link => `<kbd>${link.state_to}</kbd> ${link.count}</p>`);
+    str += '<p>' + _nodeInOuts[d.state].outs.map(link => `<kbd>${link.state_to}</kbd> ${link.count}</p>`).join('');
     str += '</p></pre>';
     return str;
   }
