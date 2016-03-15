@@ -18,7 +18,7 @@ svg {
   padding: 0.2em 0;
 }
 
-.node {
+.gt-force-node {
   cursor: pointer;
   
   circle {
@@ -32,12 +32,52 @@ svg {
     text-anchor: middle;
     font: 8px sans-serif;
   }
+  
+  .gt-force-link-launch {
+    stroke: #0f0;
+    stroke-opacity: .15;
+    cursor: pointer;
+  }
+  
+  .gt-force-link-exit {
+    stroke: #f00;
+    stroke-opacity: .15;
+    cursor: pointer;
+  }
 }
 
-.link {
-//  stroke: #ccc;
+.gt-force-link {
+  stroke: #666;
   stroke-opacity: .6;
+  cursor: pointer;
 }
+
+.gt-force-tooltip {
+  position: absolute;
+}
+
+.gt-force-tooltip-box {
+//  width: 240px;
+  padding: 3px 6px;
+  margin-bottom: 3px;
+  
+  p {
+    margin: 1px 0;
+  }
+  
+  kbd {
+    color: black;
+    background-color: azure;
+  }
+}
+//
+//.gt-force-tooltip-box-in {
+//  background-color: aquamarine;
+//}
+//
+//.gt-force-tooltip-box-out {
+//  background-color: peachpuff;
+//}
 
 
 // Component styles are injected through grunt
