@@ -119,24 +119,24 @@ var GraphTrackForceLayout = function(target, width, height) {
   }
   
   function _tooltipHtml(d) {
-    var str = `<pre class="gt-force-tooltip-box"><p><kbd>${d.state}</kbd> ${d.count}</p></pre>`;
+    var str = `<pre class="gt-force-tooltip-box"><kbd><b>${d.state}</b></kbd> <span class="text-muted">x</span> ${d.count}</pre>`;
     
     
-    str += '<pre class="gt-force-tooltip-box gt-force-tooltip-box-in">';
-    str += '<p><b>流入</b></p>';
+    str += '<pre class="gt-force-tooltip-box gt-force-tooltip-box-in success">';
+    str += '<p>流入</p>';
     if (d.launch) {
-      str += `<p><kbd style="background:aquamarine;">启动</kbd> ${d.launch}</p>`;
+      str += `<p><kbd style="background:green;color:white;">启动</kbd> <span class="text-muted">x</span> ${d.launch}</p>`;
     }
-    str += '<p>' + _.sortBy(_nodeInOuts[d.state].ins, 'count').reverse().map(link => `<kbd>${link.state_from}</kbd> ${link.count}</p>`).join('');
+    str += '<p>' + _.sortBy(_nodeInOuts[d.state].ins, 'count').reverse().map(link => `<kbd>${link.state_from}</kbd> <span class="text-muted">x</span> ${link.count}</p>`).join('');
     str += '</p></pre>';
     
     
     str += '<pre class="gt-force-tooltip-box gt-force-tooltip-box-out">';
-    str += '<p><b>流出</b></p>';
+    str += '<p>流出</p>';
     if (_nodeNetFlow[d.state]) {
-      str += `<p><kbd style="background:coral;color:white;">退出</kbd> ${_nodeNetFlow[d.state]}</p>`;
+      str += `<p><kbd style="background:coral;color:white;">退出</kbd> <span class="text-muted">x</span> ${_nodeNetFlow[d.state]}</p>`;
     }
-    str += '<p>' + _.sortBy(_nodeInOuts[d.state].outs, 'count').reverse().map(link => `<kbd>${link.state_to}</kbd> ${link.count}</p>`).join('');
+    str += '<p>' + _.sortBy(_nodeInOuts[d.state].outs, 'count').reverse().map(link => `<kbd>${link.state_to}</kbd> <span class="text-muted">x</span> ${link.count}</p>`).join('');
     str += '</p></pre>';
     
     
@@ -154,13 +154,15 @@ var GraphTrackForceLayout = function(target, width, height) {
       .style('top', (d3.event.pageY+20)+'px');
   }
   
+  //<span class="glyphicon glyphicon-arrow-right"></span>
+  
   function _lineTooltipHtml(d) {
-    var str = `<p><kbd>${d.source.state}</kbd> <span class="glyphicon glyphicon-arrow-right"></span> <kbd>${d.target.state}</kbd> ${d.count}</p>`;
+    var str = `<p><kbd>${d.source.state} -> ${d.target.state}</kbd> <span class="text-muted">x</span> ${d.count}</p>`;
     
     var reverse = _reverseLink[d.source.state+':'+d.target.state];
     
     if (reverse) {
-      const str2 = `<p><kbd>${reverse.state_from}</kbd> <span class="glyphicon glyphicon-arrow-right"></span> <kbd>${reverse.state_to}</kbd> ${reverse.count}</p>`;
+      const str2 = `<p><kbd>${reverse.state_from} -> ${reverse.state_to}</kbd> <span class="text-muted">x</span> ${reverse.count}</p>`;
       if (reverse.count < d.count) {
         str += str2;
       } else {

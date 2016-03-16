@@ -59,7 +59,7 @@ svg {
 
 .gt-force-tooltip-box {
 //  width: 240px;
-  padding: 3px 6px;
+  padding: 4px 6px;
   margin-bottom: 3px;
   
   p {
@@ -71,15 +71,11 @@ svg {
     background-color: azure;
   }
 }
-//
-//.gt-force-tooltip-box-in {
-//  background-color: aquamarine;
-//}
-//
-//.gt-force-tooltip-box-out {
-//  background-color: peachpuff;
-//}
 
+.gt-force-tooltip-box-in {
+  float: left;
+  margin-right: 3px;
+}
 
 // Component styles are injected through grunt
 // injector
