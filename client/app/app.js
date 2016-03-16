@@ -119,7 +119,7 @@ var GraphTrackForceLayout = function(target, width, height) {
   }
   
   function _tooltipHtml(d) {
-    var str = `<pre class="gt-force-tooltip-box"><kbd><b>${d.state}</b></kbd> <span class="text-muted">x</span> ${d.count}</pre>`;
+    var str = `<pre class="gt-force-tooltip-box"><kbd style="background:cornflowerblue;color:white;"><b>${d.state}</b></kbd> <span class="text-muted">x</span> ${d.count}</pre>`;
     
     
     str += '<pre class="gt-force-tooltip-box gt-force-tooltip-box-in success">';
