@@ -29,10 +29,10 @@ function handleError(res, statusCode) {
 export function go(req, res) {
   let {states, appVersion} = req.query;
   if (!appVersion)
-    return res.status(404).json({ok: 0, msg: 'app version required'}).end();
+    return res.status(400).json({ok: 0, msg: 'app version required'}).end();
   
   if (!states)
-    return res.status(404).json({ok: 0, msg: 'state required'}).end();
+    return res.status(400).json({ok: 0, msg: 'state required'}).end();
   
   states = states.split(',');
   appVersion = parseAppVersion(appVersion);
@@ -50,7 +50,7 @@ export function go(req, res) {
   }
   
   Promise.all(promises)
-    .then(respondWithResult(res))
+    .then(respondWithResult(res, 201))
     .catch(handleError(res));
 }
 
@@ -58,7 +58,7 @@ export function graph(req, res) {
   const {appVersion} = req.query;
   
   if (!appVersion)
-    return res.status(404).json({ok: 0, msg: 'app version required'}).end();
+    return res.status(400).json({ok: 0, msg: 'app version required'}).end();
   
   const version = parseAppVersion(appVersion);
   
