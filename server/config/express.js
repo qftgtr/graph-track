@@ -5,6 +5,7 @@
 'use strict';
 
 import express from 'express';
+import helmet from 'helmet';
 import favicon from 'serve-favicon';
 import morgan from 'morgan';
 import compression from 'compression';
@@ -27,6 +28,7 @@ export default function(app) {
   app.set('views', config.root + '/server/views');
   app.engine('html', require('ejs').renderFile);
   app.set('view engine', 'html');
+  app.use(helmet());
   app.use(compression());
   app.use(bodyParser.urlencoded({ extended: false }));
   app.use(bodyParser.json());
