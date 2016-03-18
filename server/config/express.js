@@ -18,9 +18,25 @@ import lusca from 'lusca';
 import config from './environment';
 import passport from 'passport';
 import session from 'express-session';
-import connectMongo from 'connect-mongo';
 import mongoose from 'mongoose';
-var mongoStore = connectMongo(session);
+
+var sessionStore;
+
+if (config.session.store === 'Redis') {
+  var RedisStore = require('connect-redis')(session);
+  sessionStore = new RedisStore({
+    host: config.session.host,
+    port: config.session.port,
+//    client: config.session.client,
+    ttl: config.session.ttl,
+  });
+} else {
+  var MongoStore = require('connect-mongo')(session);
+  sessionStore = new MongoStore({
+    mongooseConnection: mongoose.connection,
+    db: 'graph-track'
+  });
+}
 
 export default function(app) {
   var env = app.get('env');
@@ -44,10 +60,7 @@ export default function(app) {
     secret: config.secrets.session,
     saveUninitialized: true,
     resave: false,
-    store: new mongoStore({
-      mongooseConnection: mongoose.connection,
-      db: 'graph-track'
-    })
+    store: sessionStore,
   }));
 
   /**
