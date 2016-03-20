@@ -19,22 +19,21 @@ import config from './environment';
 import passport from 'passport';
 import session from 'express-session';
 import mongoose from 'mongoose';
+import redis from 'redis';
 
 var sessionStore;
 
 if (config.session.store === 'Redis') {
   var RedisStore = require('connect-redis')(session);
   sessionStore = new RedisStore({
-    host: config.session.host,
-    port: config.session.port,
-//    client: config.session.client,
-    ttl: config.session.ttl,
+    client: redis.createClient(config.session.client),
+    ttl: config.session.ttl
   });
 } else {
   var MongoStore = require('connect-mongo')(session);
   sessionStore = new MongoStore({
     mongooseConnection: mongoose.connection,
-    db: 'graph-track'
+    ttl: config.session.ttl
   });
 }
 

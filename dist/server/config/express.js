@@ -70,21 +70,23 @@ var _mongoose = require('mongoose');
 
 var _mongoose2 = _interopRequireDefault(_mongoose);
 
+var _redis = require('redis');
+
+var _redis2 = _interopRequireDefault(_redis);
+
 var sessionStore;
 
 if (_environment2['default'].session.store === 'Redis') {
   var RedisStore = require('connect-redis')(_expressSession2['default']);
   sessionStore = new RedisStore({
-    host: _environment2['default'].session.host,
-    port: _environment2['default'].session.port,
-    //    client: config.session.client,
+    client: _redis2['default'].createClient(_environment2['default'].session.client),
     ttl: _environment2['default'].session.ttl
   });
 } else {
   var MongoStore = require('connect-mongo')(_expressSession2['default']);
   sessionStore = new MongoStore({
     mongooseConnection: _mongoose2['default'].connection,
-    db: 'graph-track'
+    ttl: _environment2['default'].session.ttl
   });
 }
 

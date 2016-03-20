@@ -32,11 +32,10 @@ var all = {
     session: 'session-secret'
   },
 
+  // Session store options
   session: {
-    store: 'Redis',
-    client: '192.168.99.100:32769',
-    host: '192.168.99.100',
-    port: '6379',
+    store: process.env.SESSION_STORE, //'Redis',
+    client: process.env.REDIS_URI,
     ttl: 86400
   },
 
