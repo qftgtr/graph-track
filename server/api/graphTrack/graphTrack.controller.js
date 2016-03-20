@@ -27,7 +27,7 @@ function handleError(res, statusCode) {
 }
 
 export function go(req, res) {
-  let {states, appVersion, appId} = req.query;
+  let {appId, appVersion, states} = req.body;
   if (!appId)
     return res.status(400).json({ok: 0, msg: 'appId required'}).end();
   
@@ -57,7 +57,7 @@ export function go(req, res) {
     .catch(handleError(res));
 }
 
-export function graph(req, res) {
+export function graph(req, res) {  
   const {appId, appVersion} = req.query;
   if (!appId)
     return res.status(400).json({ok: 0, msg: 'appId required'}).end();
@@ -87,7 +87,7 @@ export function graph(req, res) {
 
 
 function launchState(appId, version, state, type) {
-  const _id = [version, state].join('_');
+  const _id = [appId, version, state].join('_');
   
   return GT_States.update({_id}, {$inc: {count: 1, launch: 1}}).exec()
     .then(result => {
@@ -107,7 +107,7 @@ function launchState(appId, version, state, type) {
 }
   
 function incState(appId, version, state) {
-  const _id = [version, state].join('_');
+  const _id = [appId, version, state].join('_');
   
   return GT_States.update({_id}, {$inc: {count: 1}}).exec()
     .then(result => {
@@ -127,7 +127,7 @@ function incState(appId, version, state) {
 }
 
 function incEdge(appId, version, stateFrom, stateTo) {
-  const _id = [version, stateFrom, stateTo].join('_');
+  const _id = [appId, version, stateFrom, stateTo].join('_');
   
   return GT_Edges.update({_id}, {$inc: {count: 1}}).exec()
     .then(result => {

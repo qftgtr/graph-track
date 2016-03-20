@@ -7,10 +7,6 @@ $fa-font-path: "../bower_components/font-awesome/fonts";
  * App-wide Styles
  */
 
-svg {
-  background: black;
-}
-
 .browserupgrade {
   margin: 0.2em 0;
   background: #ccc;
@@ -18,65 +14,11 @@ svg {
   padding: 0.2em 0;
 }
 
-.gt-force-node {
-  cursor: pointer;
-  
-  circle {
-    stroke: black;
-    stroke-width: 1.5px;
-    cursor: pointer;
-  }
-  
-  text {
-    fill: white;
-    text-anchor: middle;
-    font: 8px sans-serif;
-  }
-}
-
-.gt-force-external {
-  stroke-opacity: .15;
-  cursor: pointer;
-  
-  .gt-force-external-launch {
-    stroke: #0f0;
-  }
-  
-  .gt-force-external-exit {
-    stroke: #f00;
-  }
-}
-
-.gt-force-link {
-  stroke: #666;
-  stroke-opacity: .6;
-  cursor: pointer;
-}
-
-.gt-force-tooltip {
-  position: absolute;
-}
-
-.gt-force-tooltip-box {
-//  width: 240px;
-  padding: 4px 6px;
-  margin-bottom: 3px;
-  
-  p {
-    margin: 1px 0;
-  }
-  
-  kbd {
-    color: black;
-    background-color: azure;
-  }
-}
-
-.gt-force-tooltip-box-in {
-  float: left;
-  margin-right: 3px;
-}
-
 // Component styles are injected through grunt
 // injector
+@import 'account/graph/graph';
+@import 'admin/admin';
+@import 'main/main';
+@import '../components/footer/footer';
+@import '../components/modal/modal';
 // endinjector

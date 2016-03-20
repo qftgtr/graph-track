@@ -1,0 +1,24 @@
+<div class="container">  
+  <div class="row">
+    <div class="col-lg-6">
+      <div class="input-group">
+        <input type="text" class="form-control" ng-model='$ctrl.newThing' placeholder="Name of the new App">
+        <span class="input-group-btn">
+          <button class="btn btn-primary" type="button" ng-click="$ctrl.addApp()">New App</button>
+        </span>
+      </div>
+    </div>
+  </div>
+  
+  <div class="row">
+    <ul class="list-group user-list">
+      <li class="list-group-item" ng-repeat="app in $ctrl.appList">
+          <div class="user-info">
+              <strong><a ui-sref="graph({id:'{{app._id}}'})">{{app.name}}</a></strong><br>
+              appId: <span class="text-muted">{{app._id}}</span>
+          </div>
+          <a ng-click="$ctrl.deleteApp(app)" class="trash"><span class="fa fa-trash fa-2x"></span></a>
+      </li>
+    </ul>
+  </div>
+</div>

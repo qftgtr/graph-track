@@ -16,6 +16,7 @@ var router = express.Router();
 
 router.get('/', appController.indexApps);
 router.post('/', appController.createApp);
+router.delete('/:id', appController.destroy);
 router.post('/go', cors({origin: '*'}), controller.go);
 //router.post('/exit', corsConfig, controller.exit);
 router.get('/graph', controller.graph);
