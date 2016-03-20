@@ -52,6 +52,11 @@ function isAuthenticated() {
       req.headers.authorization = 'Bearer ' + req.query.access_token;
     }
     validateJwt(req, res, next);
+  }).use(function (err, req, res, next) {
+    if (err) {
+      return res.status(err.status).send(err.inner).end();
+    }
+    next();
   })
   // Attach user to request
   .use(function (req, res, next) {

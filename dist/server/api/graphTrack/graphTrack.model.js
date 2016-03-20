@@ -13,8 +13,14 @@ var _mongoose2 = _interopRequireDefault(_mongoose);
 _mongoose2['default'].Promise = global.Promise;
 
 var GraphTrackModel = {
+  GT_Apps: _mongoose2['default'].model('GT_Apps', new _mongoose2['default'].Schema({
+    userId: String,
+    name: String
+  })),
+  //    versions: Array,
   GT_States: _mongoose2['default'].model('GT_States', new _mongoose2['default'].Schema({
     _id: String,
+    appId: String,
     version: String,
     state: String,
     count: Number,
@@ -24,6 +30,7 @@ var GraphTrackModel = {
   })),
   GT_Edges: _mongoose2['default'].model('GT_Edges', new _mongoose2['default'].Schema({
     _id: String,
+    appId: String,
     version: String,
     state_from: String,
     state_to: String,

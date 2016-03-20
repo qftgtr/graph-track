@@ -44,13 +44,16 @@ function handleError(res, statusCode) {
 }
 
 function go(req, res) {
-  var _req$query = req.query;
-  var states = _req$query.states;
-  var appVersion = _req$query.appVersion;
+  var _req$body = req.body;
+  var appId = _req$body.appId;
+  var appVersion = _req$body.appVersion;
+  var states = _req$body.states;
 
-  if (!appVersion) return res.status(404).json({ ok: 0, msg: 'app version required' }).end();
+  if (!appId) return res.status(400).json({ ok: 0, msg: 'appId required' }).end();
 
-  if (!states) return res.status(404).json({ ok: 0, msg: 'state required' }).end();
+  if (!appVersion) return res.status(400).json({ ok: 0, msg: 'app version required' }).end();
+
+  if (!states) return res.status(400).json({ ok: 0, msg: 'state required' }).end();
 
   states = states.split(',');
   appVersion = parseAppVersion(appVersion);
@@ -59,31 +62,35 @@ function go(req, res) {
 
   for (var i = 0; i < states.length - 1; i++) {
     if (states[i]) {
-      promises.push(incEdge(appVersion, states[i], states[i + 1]));
-      promises.push(incState(appVersion, states[i + 1]));
+      promises.push(incEdge(appId, appVersion, states[i], states[i + 1]));
+      promises.push(incState(appId, appVersion, states[i + 1]));
     } else {
-      promises.push(incState(appVersion, 'launch'));
-      promises.push(launchState(appVersion, states[i + 1]));
+      promises.push(incState(appId, appVersion, 'launch'));
+      promises.push(launchState(appId, appVersion, states[i + 1]));
     }
   }
 
-  _Promise.all(promises).then(respondWithResult(res))['catch'](handleError(res));
+  _Promise.all(promises).then(respondWithResult(res, 201))['catch'](handleError(res));
 }
 
 function graph(req, res) {
-  var appVersion = req.query.appVersion;
+  var _req$query = req.query;
+  var appId = _req$query.appId;
+  var appVersion = _req$query.appVersion;
 
-  if (!appVersion) return res.status(404).json({ ok: 0, msg: 'app version required' }).end();
+  if (!appId) return res.status(400).json({ ok: 0, msg: 'appId required' }).end();
+
+  if (!appVersion) return res.status(400).json({ ok: 0, msg: 'app version required' }).end();
 
   var version = parseAppVersion(appVersion);
 
-  _Promise.all([GT_States.find({ version: version }, {
+  _Promise.all([GT_States.find({ appId: appId, version: version }, {
     _id: false,
     state: true,
     count: true,
     launch: true,
     exit: true
-  }).exec(), GT_Edges.find({ version: version }, {
+  }).exec(), GT_Edges.find({ appId: appId, version: version }, {
     _id: false,
     state_from: true,
     state_to: true,
@@ -91,14 +98,15 @@ function graph(req, res) {
   }).exec()]).then(respondWithResult(res))['catch'](handleError(res));
 }
 
-function launchState(version, state, type) {
-  var _id = [version, state].join('_');
+function launchState(appId, version, state, type) {
+  var _id = [appId, version, state].join('_');
 
   return GT_States.update({ _id: _id }, { $inc: { count: 1, launch: 1 } }).exec().then(function (result) {
     if (result.nModified) return result;
 
     return GT_States.create({
       _id: _id,
+      appId: appId,
       version: version,
       state: state,
       count: 1,
@@ -108,14 +116,15 @@ function launchState(version, state, type) {
   });
 }
 
-function incState(version, state) {
-  var _id = [version, state].join('_');
+function incState(appId, version, state) {
+  var _id = [appId, version, state].join('_');
 
   return GT_States.update({ _id: _id }, { $inc: { count: 1 } }).exec().then(function (result) {
     if (result.nModified) return result;
 
     return GT_States.create({
       _id: _id,
+      appId: appId,
       version: version,
       state: state,
       count: 1,
@@ -125,14 +134,15 @@ function incState(version, state) {
   });
 }
 
-function incEdge(version, stateFrom, stateTo) {
-  var _id = [version, stateFrom, stateTo].join('_');
+function incEdge(appId, version, stateFrom, stateTo) {
+  var _id = [appId, version, stateFrom, stateTo].join('_');
 
   return GT_Edges.update({ _id: _id }, { $inc: { count: 1 } }).exec().then(function (result) {
     if (result.nModified) return result;
 
     return GT_Edges.create({
       _id: _id,
+      appId: appId,
       version: version,
       state_from: stateFrom,
       state_to: stateTo,

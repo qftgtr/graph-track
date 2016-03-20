@@ -14,6 +14,10 @@ var _express = require('express');
 
 var _express2 = _interopRequireDefault(_express);
 
+var _helmet = require('helmet');
+
+var _helmet2 = _interopRequireDefault(_helmet);
+
 var _serveFavicon = require('serve-favicon');
 
 var _serveFavicon2 = _interopRequireDefault(_serveFavicon);
@@ -62,15 +66,27 @@ var _expressSession = require('express-session');
 
 var _expressSession2 = _interopRequireDefault(_expressSession);
 
-var _connectMongo = require('connect-mongo');
-
-var _connectMongo2 = _interopRequireDefault(_connectMongo);
-
 var _mongoose = require('mongoose');
 
 var _mongoose2 = _interopRequireDefault(_mongoose);
 
-var mongoStore = (0, _connectMongo2['default'])(_expressSession2['default']);
+var sessionStore;
+
+if (_environment2['default'].session.store === 'Redis') {
+  var RedisStore = require('connect-redis')(_expressSession2['default']);
+  sessionStore = new RedisStore({
+    host: _environment2['default'].session.host,
+    port: _environment2['default'].session.port,
+    //    client: config.session.client,
+    ttl: _environment2['default'].session.ttl
+  });
+} else {
+  var MongoStore = require('connect-mongo')(_expressSession2['default']);
+  sessionStore = new MongoStore({
+    mongooseConnection: _mongoose2['default'].connection,
+    db: 'graph-track'
+  });
+}
 
 exports['default'] = function (app) {
   var env = app.get('env');
@@ -78,6 +94,7 @@ exports['default'] = function (app) {
   app.set('views', _environment2['default'].root + '/server/views');
   app.engine('html', require('ejs').renderFile);
   app.set('view engine', 'html');
+  app.use((0, _helmet2['default'])());
   app.use((0, _compression2['default'])());
   app.use(_bodyParser2['default'].urlencoded({ extended: false }));
   app.use(_bodyParser2['default'].json());
@@ -88,15 +105,12 @@ exports['default'] = function (app) {
   // Persist sessions with mongoStore / sequelizeStore
   // We need to enable sessions for passport-twitter because it's an
   // oauth 1.0 strategy, and Lusca depends on sessions
-  app.use(/\/((?!api\/track).)*/, (0, _expressSession2['default'])({
-    name: 'trackid',
+  app.use((0, _expressSession2['default'])({
+    name: 'sid',
     secret: _environment2['default'].secrets.session,
     saveUninitialized: true,
     resave: false,
-    store: new mongoStore({
-      mongooseConnection: _mongoose2['default'].connection,
-      db: 'graph-track'
-    })
+    store: sessionStore
   }));
 
   /**

@@ -3,6 +3,7 @@
 var express = require('express');
 var cors = require('cors');
 var controller = require('./graphTrack.controller');
+var appController = require('./graphApps.controller');
 
 var router = express.Router();
 
@@ -13,6 +14,9 @@ var router = express.Router();
 //  allowedHeaders: 'Content-Type, Accept, X-Requested-With',
 //});
 
+router.get('/', appController.indexApps);
+router.post('/', appController.createApp);
+router['delete']('/:id', appController.destroy);
 router.post('/go', cors({ origin: '*' }), controller.go);
 //router.post('/exit', corsConfig, controller.exit);
 router.get('/graph', controller.graph);

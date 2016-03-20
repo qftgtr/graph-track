@@ -29,7 +29,15 @@ var all = {
 
   // Secret for session, you will want to change this and make it an environment variable
   secrets: {
-    session: 'graph-track-secret'
+    session: 'session-secret'
+  },
+
+  session: {
+    store: 'Redis',
+    client: '192.168.99.100:32769',
+    host: '192.168.99.100',
+    port: '6379',
+    ttl: 86400
   },
 
   // MongoDB connection options
