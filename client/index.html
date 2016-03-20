@@ -22,6 +22,24 @@
     <!-- endbuild -->
   </head>
   <body>
+    <div class="panel panel-info" style="width: 320px; margin: 200px auto;">
+      <div class="panel-heading">Graph Track</div>
+      <div class="panel-body">
+        <form action="/auth/local" method="post">
+          <div class="form-group">
+            <label for="inputEmail">Email</label>
+            <input type="email" name="email" class="form-control" id="inputEmail" placeholder="Email address">
+          </div>
+          <div class="form-group">
+            <label for="inputPassword">Password</label>
+            <input type="password" name="password" class="form-control" id="inputPassword" placeholder="Password">
+          </div>
+          <button type="submit" class="btn btn-block btn-primary">Sign in</button>
+        </form>
+      </div>
+    </div>
+    
+    
     <!--[if lt IE 7]>
       <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->

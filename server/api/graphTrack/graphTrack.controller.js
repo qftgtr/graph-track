@@ -27,7 +27,10 @@ function handleError(res, statusCode) {
 }
 
 export function go(req, res) {
-  let {states, appVersion} = req.query;
+  let {states, appVersion, appId} = req.query;
+  if (!appId)
+    return res.status(400).json({ok: 0, msg: 'appId required'}).end();
+  
   if (!appVersion)
     return res.status(400).json({ok: 0, msg: 'app version required'}).end();
   
@@ -41,11 +44,11 @@ export function go(req, res) {
   
   for (let i=0; i<states.length-1; i++) {
     if (states[i]) {
-      promises.push(incEdge(appVersion, states[i], states[i+1]));
-      promises.push(incState(appVersion, states[i+1]));
+      promises.push(incEdge(appId, appVersion, states[i], states[i+1]));
+      promises.push(incState(appId, appVersion, states[i+1]));
     } else {
-      promises.push(incState(appVersion, 'launch'));
-      promises.push(launchState(appVersion, states[i+1]));
+      promises.push(incState(appId, appVersion, 'launch'));
+      promises.push(launchState(appId, appVersion, states[i+1]));
     }
   }
   
@@ -55,7 +58,9 @@ export function go(req, res) {
 }
 
 export function graph(req, res) {
-  const {appVersion} = req.query;
+  const {appId, appVersion} = req.query;
+  if (!appId)
+    return res.status(400).json({ok: 0, msg: 'appId required'}).end();
   
   if (!appVersion)
     return res.status(400).json({ok: 0, msg: 'app version required'}).end();
@@ -63,14 +68,14 @@ export function graph(req, res) {
   const version = parseAppVersion(appVersion);
   
   Promise.all([
-    GT_States.find({version: version}, {
+    GT_States.find({appId, version: version}, {
       _id: false,
       state: true,
       count: true,
       launch: true,
       exit: true,
     }).exec(),
-    GT_Edges.find({version: version}, {
+    GT_Edges.find({appId, version: version}, {
       _id: false,
       state_from: true,
       state_to: true,
@@ -81,7 +86,7 @@ export function graph(req, res) {
 }
 
 
-function launchState(version, state, type) {
+function launchState(appId, version, state, type) {
   const _id = [version, state].join('_');
   
   return GT_States.update({_id}, {$inc: {count: 1, launch: 1}}).exec()
@@ -91,6 +96,7 @@ function launchState(version, state, type) {
     
       return GT_States.create({
         _id,
+        appId,
         version,
         state,
         count: 1,
@@ -100,7 +106,7 @@ function launchState(version, state, type) {
     });
 }
   
-function incState(version, state) {
+function incState(appId, version, state) {
   const _id = [version, state].join('_');
   
   return GT_States.update({_id}, {$inc: {count: 1}}).exec()
@@ -110,6 +116,7 @@ function incState(version, state) {
     
       return GT_States.create({
         _id,
+        appId,
         version,
         state,
         count: 1,
@@ -119,7 +126,7 @@ function incState(version, state) {
     });
 }
 
-function incEdge(version, stateFrom, stateTo) {
+function incEdge(appId, version, stateFrom, stateTo) {
   const _id = [version, stateFrom, stateTo].join('_');
   
   return GT_Edges.update({_id}, {$inc: {count: 1}}).exec()
@@ -129,6 +136,7 @@ function incEdge(version, stateFrom, stateTo) {
 
       return GT_Edges.create({
         _id,
+        appId,
         version,
         state_from: stateFrom,
         state_to: stateTo,

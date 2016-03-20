@@ -226,6 +226,6 @@ var GraphTrackForceLayout = function(target, width, height) {
   
   return { render };
 };
-
-const gt = GraphTrackForceLayout('body', 1200, 640);
-gt.render('/api/track/graph?appVersion=0.1');
+//
+//const gt = GraphTrackForceLayout('body', 1200, 640);
+//gt.render('/api/track/graph?appVersion=0.1');
